@@ -52,6 +52,7 @@ public class SSHLoginTask implements LogFileTailerListener{
 				log.debug("log line:", line);
 				//格式化
 				line = line.replace("invalid user ", "");
+				line = line.replace("  ", " ");
 				//失败日志
 				//Jun  1 19:19:47 next sshd[12104]: Failed password for root from 211.144.94.236 port 11708 ssh2
 				//成功日志

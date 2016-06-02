@@ -45,7 +45,9 @@ public class SSHLoginTask implements LogFileTailerListener{
 	public void newLogFileLine(String line) {
 		try {
 			//消息监听 符合条件的消息
-			if(null != line && !line.isEmpty() && line.contains("sshd") && line.contains("password") && line.split(" ").length==14)
+			if(null != line && !line.isEmpty() && line.contains("sshd") && 
+					line.contains("password") && line.contains("from") && line.contains("ssh2")
+					&& line.contains("for"))
 			{
 				log.debug("log line:", line);
 				//格式化

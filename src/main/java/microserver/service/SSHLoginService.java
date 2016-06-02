@@ -1,7 +1,5 @@
 package microserver.service;
 
-import java.util.List;
-
 import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,11 +27,11 @@ public class SSHLoginService {
 	 * @param size
 	 * @return
 	 */
-	public List<SSHLoginPO> getSSHLoginByPage(int page,int size,int status)
+	public Page<SSHLoginPO> getSSHLoginByPage(int page,int size,int status)
 	{
 		PageRequest pageRequest = new PageRequest(page, size);
 		Page<SSHLoginPO> pageList = sshLoginReposity.findSSHLoginByDateDesc(status,pageRequest);
-		return pageList.getContent();
+		return pageList;
 	}
 	
 }

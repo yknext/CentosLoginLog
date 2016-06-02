@@ -1,17 +1,20 @@
 package microserver.rest;
 
+import java.io.IOException;
 import java.io.StringWriter;
 import java.text.SimpleDateFormat;
-import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fasterxml.jackson.core.JsonGenerationException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import microserver.entity.SSHLoginPO;
@@ -39,8 +42,6 @@ public class LoginLogRest {
 	{
 		String host = httpRequest.getRemoteHost();
 		IPInfo ipInfo = iPService.getIPInfo(host);
-		ObjectMapper objectMapper=new ObjectMapper();
-		String result ="";
 		StringWriter str=new StringWriter();
         try {
             objectMapper.writeValue(str, ipInfo);
@@ -48,7 +49,7 @@ public class LoginLogRest {
             // TODO Auto-generated catch block
             e.printStackTrace();
         } 
-		return result;
+		return str.toString();
 	}
 	
 	@RequestMapping(value="/getLoginLog/{status}/{page}/{size}",method=RequestMethod.GET)
@@ -71,7 +72,50 @@ public class LoginLogRest {
 			e.printStackTrace();
 			return "ERROR";
 		}
-		List<SSHLoginPO> list = sSHLoginService.getSSHLoginByPage(ipage,isize,istatus);
+		Page<SSHLoginPO> pagelist = sSHLoginService.getSSHLoginByPage(ipage,isize,istatus);
+		String sb = SimpleHtml(pagelist);
+		return sb;
+	}
+	
+	@RequestMapping(value="/api/sshdlog/{status}/{page}/{size}",method=RequestMethod.GET)
+	public String findSshLog(@PathVariable String status,@PathVariable String page,@PathVariable String size)
+	{
+		//没时间写界面将就着看
+		int ipage=0;
+		int isize=40;
+		int istatus=-1;
+		try{
+			ipage = Integer.parseInt(page);
+			if(ipage>0)
+			{
+				ipage --;
+			}
+			isize = Integer.parseInt(size);
+			istatus = Integer.parseInt(status);
+		}catch(Exception e)
+		{
+			e.printStackTrace();
+			return "ERROR";
+		}
+		Page<SSHLoginPO> pagelist = sSHLoginService.getSSHLoginByPage(ipage,isize,istatus);
+		String sb = SimpleHtml(pagelist);
+		StringWriter str=new StringWriter();
+		try {
+			objectMapper.writeValue(str, pagelist);
+		} catch (JsonGenerationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (JsonMappingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return str.toString();
+	}
+
+	private String SimpleHtml(Page<SSHLoginPO> pagelist) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("<html>");
 		sb.append("<body>");
@@ -88,7 +132,7 @@ public class LoginLogRest {
 		sb.append("<th>date</th>");
 		sb.append("</tr>");
 
-		for(SSHLoginPO log : list)
+		for(SSHLoginPO log : pagelist.getContent())
 		{
 			sb.append("<tr>");
 			sb.append("<th>"+log.getId()+"</th>");
@@ -120,8 +164,6 @@ public class LoginLogRest {
 		sb.append("</table>");
 		sb.append("</body>");
 		sb.append("</html>");
-		
-		
 		return sb.toString();
 	}
 	
